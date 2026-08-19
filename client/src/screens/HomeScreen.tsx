@@ -32,8 +32,9 @@ export function HomeScreen() {
   return (
     <div className="home-screen">
       <h1>The Gang</h1>
+      
       <p className="subtitle">
-        On avait dit 4 manche pas plus ...
+        Pas de carré c'est rematch
       </p>
       <div className="mode-toggle">
         <button type="button" className={mode === 'create' ? 'active' : ''} onClick={() => setMode('create')}>

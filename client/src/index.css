@@ -30,12 +30,37 @@
   box-sizing: border-box;
 }
 
+/* Même fond sur <html> que sur <body> : avec viewport-fit=cover, la zone sous l'encoche/la
+   barre de statut peut laisser voir le fond de <html> si celui-ci diffère (sinon transparent
+   -> noir par défaut) — d'où le petit bandeau noir en haut observé en PWA. */
+html {
+  background: var(--bg);
+}
+
 body {
   margin: 0;
   min-height: 100vh;
   color: var(--text);
   background: radial-gradient(ellipse 60% 45% at 50% 0%, rgba(201, 160, 78, 0.06), transparent 60%),
     radial-gradient(ellipse 130% 90% at 50% 35%, var(--felt-light) 0%, var(--felt) 45%, var(--bg) 100%);
+}
+
+/* Supprime le rebond ("bounce") de défilement uniquement quand l'app est lancée en
+   PWA depuis l'écran d'accueil (display-mode: standalone) — le web classique garde
+   son défilement normal. Le contenu qui dépasse défile quand même, via #root. */
+@media (display-mode: standalone) {
+  html,
+  body {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior-y: none;
+  }
+  #root {
+    height: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+  }
 }
 
 
@@ -50,7 +75,7 @@ body {
   color: var(--text);
   border-bottom: 2px solid var(--ink);
   text-align: center;
-  padding: 0.6rem 1rem;
+  padding: calc(0.6rem + env(safe-area-inset-top)) 1rem 0.6rem;
   font-family: var(--font-data);
   font-size: 0.85rem;
 }
@@ -60,7 +85,7 @@ body {
 .app-shell {
   max-width: 480px;
   margin: 0 auto;
-  padding: 1.25rem 1rem 1.5rem;
+  padding: calc(1.25rem + env(safe-area-inset-top)) 1rem calc(1.5rem + env(safe-area-inset-bottom));
   min-height: 100vh;
   min-height: 100dvh; /* hauteur réelle du viewport mobile, sans le bas coupé par la barre du navigateur */
   display: flex;
