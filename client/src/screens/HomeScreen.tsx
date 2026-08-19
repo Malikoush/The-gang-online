@@ -63,7 +63,6 @@ export function HomeScreen() {
           {mode === 'create' ? 'Créer' : 'Rejoindre'}
         </button>
       </form>
-      {!connected && <p className="error">Connexion au serveur…</p>}
       {joinError && <p className="error">{joinErrorLabel(joinError)}</p>}
     </div>
   );

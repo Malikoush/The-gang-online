@@ -1,4 +1,5 @@
 # The Gang — en ligne
+https://the-gang-online.onrender.com
 
 Adaptation en ligne du jeu de cartes coopératif "The Gang". Chaque joueur reçoit 2 cartes privées, les cartes communes tombent au fil du pré-flop/flop/turn/river, et le groupe doit se classer collectivement de la main la plus faible à la plus forte à l'aide de jetons — sans jamais dire ce qu'on a en main.
 

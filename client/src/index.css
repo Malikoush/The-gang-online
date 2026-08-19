@@ -48,6 +48,22 @@ body::after {
   background: radial-gradient(ellipse at center, transparent 45%, rgba(0, 0, 0, 0.5) 100%);
 }
 
+/* Bandeau de reconnexion — visible sur n'importe quel écran (accueil, en pleine manche…) */
+.connection-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 3000;
+  background: var(--bordeaux);
+  color: var(--text);
+  border-bottom: 2px solid var(--ink);
+  text-align: center;
+  padding: 0.6rem 1rem;
+  font-family: var(--font-data);
+  font-size: 0.85rem;
+}
+
 /* Format téléphone : on garde une colonne étroite même sur desktop, et on profite
    de la largeur récupérée pour agrandir les cartes/jetons plutôt que les étaler. */
 .app-shell {

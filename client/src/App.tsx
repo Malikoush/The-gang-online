@@ -1,4 +1,5 @@
 import { RoomProvider, useRoom } from './state/RoomProvider';
+import { ConnectionBanner } from './components/ConnectionBanner';
 import { HomeScreen } from './screens/HomeScreen';
 import { LobbyScreen } from './screens/LobbyScreen';
 import { VotingScreen } from './screens/VotingScreen';
@@ -27,6 +28,7 @@ function Game() {
 export default function App() {
   return (
     <RoomProvider>
+      <ConnectionBanner />
       <div className="app-shell">
         <Game />
       </div>

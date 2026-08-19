@@ -37,7 +37,7 @@ export function LobbyScreen() {
       <RoomSettingsPanel />
       {me?.isHost ? (
         <button type="button" disabled={!canStart} onClick={startGame}>
-          {state.players.length < 2 ? 'Il faut au moins 2 joueurs' : 'Démarrer le braquage'}
+          {state.players.length < 2 ? 'Il faut au moins 2 joueurs' : 'Démarrer la partie'}
         </button>
       ) : (
         <p>En attente que l'hôte démarre la partie…</p>
