@@ -11,7 +11,7 @@ export function CommunityCards() {
         {state.communityCards.length > 0 ? (
           state.communityCards.map((c, i) => <PlayingCard key={i} card={c} />)
         ) : (
-          <span className="community-empty">Aucune pour l'instant — pré-flop</span>
+          <span className="community-empty">Aucune pour l'instant - pré-flop</span>
         )}
       </div>
     </div>

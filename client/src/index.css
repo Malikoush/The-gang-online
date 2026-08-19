@@ -38,15 +38,6 @@ body {
     radial-gradient(ellipse 130% 90% at 50% 35%, var(--felt-light) 0%, var(--felt) 45%, var(--bg) 100%);
 }
 
-/* Vignette globale discrète — un seul calque statique, coût nul */
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 999;
-  background: radial-gradient(ellipse at center, transparent 45%, rgba(0, 0, 0, 0.5) 100%);
-}
 
 /* Bandeau de reconnexion — visible sur n'importe quel écran (accueil, en pleine manche…) */
 .connection-banner {
