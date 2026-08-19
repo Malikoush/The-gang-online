@@ -1,0 +1,662 @@
+:root {
+  color-scheme: dark;
+  /* Palette inspirée de l'affiche du jeu : aplats francs, contours noirs épais,
+     jaune/or et rouge saturés plutôt que des dégradés métalliques subtils. */
+  --bg: #050403; /* noir de jais */
+  --felt: #0c3a2a; /* vert feutre de table de poker */
+  --felt-light: #124f38;
+  --bordeaux: #4a0f1f; /* bordeaux velours profond */
+  --ink: #0a0a0a; /* noir des contours épais */
+  --gold: #e0a934; /* or affiche, aplat */
+  --gold-soft: #f3cf6b;
+  --gold-hi: #f7dd8c;
+  --gold-low: #8a6023;
+  --accent-red: #c8382a; /* rouge affiche */
+  --text: #f1e6c8; /* ivoire */
+  --text-dim: #b7a687;
+  --danger: var(--accent-red);
+  --success: #3f8a63;
+  /* Jetons : jaune = placé mais pas confirmé, rouge = placé et verrouillé */
+  --chip-empty: #21170f;
+  --chip-yellow: var(--gold);
+  --chip-red: var(--accent-red);
+  --font-display: 'Cinzel Decorative', 'Cinzel', serif;
+  --font-title: 'Cinzel', serif;
+  --font-data: 'Oswald', sans-serif;
+  font-family: var(--font-data);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--text);
+  background: radial-gradient(ellipse 60% 45% at 50% 0%, rgba(201, 160, 78, 0.06), transparent 60%),
+    radial-gradient(ellipse 130% 90% at 50% 35%, var(--felt-light) 0%, var(--felt) 45%, var(--bg) 100%);
+}
+
+/* Vignette globale discrète — un seul calque statique, coût nul */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 999;
+  background: radial-gradient(ellipse at center, transparent 45%, rgba(0, 0, 0, 0.5) 100%);
+}
+
+/* Format téléphone : on garde une colonne étroite même sur desktop, et on profite
+   de la largeur récupérée pour agrandir les cartes/jetons plutôt que les étaler. */
+.app-shell {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 1.25rem 1rem 1.5rem;
+  min-height: 100vh;
+  min-height: 100dvh; /* hauteur réelle du viewport mobile, sans le bas coupé par la barre du navigateur */
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  position: relative;
+}
+.app-shell > * {
+  flex: 1;
+}
+
+h1,
+h2 {
+  font-family: var(--font-title);
+  letter-spacing: 0.03em;
+  margin: 0.25rem 0;
+  color: var(--gold-soft);
+  font-weight: 600;
+}
+
+/* Cartes/écrans : un seul liseré fin + ombre douce, coins bien arrondis */
+.lobby-screen,
+.voting-screen,
+.reveal-screen,
+.round-result-screen {
+  background: rgba(8, 5, 4, 0.55);
+  border: 1px solid rgba(201, 160, 78, 0.3);
+  border-radius: 20px;
+  padding: 1.5rem 1.25rem;
+  box-shadow: 0 16px 30px -18px rgba(0, 0, 0, 0.75);
+}
+.voting-screen,
+.reveal-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.lobby-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  position: relative;
+}
+/* Pousse les jetons de vote + le chat vers le bas de l'écran plutôt que de les laisser
+   collés sous les cartes, pour occuper l'espace libre en bas d'un écran de téléphone. */
+.voting-lower {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Boutons façon affiche : aplat franc, contour noir épais, ombre "dure" plate
+   (pas de flou) qui s'écrase au clic — look jeu de société, pas bijouterie. */
+button {
+  cursor: pointer;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: var(--gold);
+  color: var(--ink);
+  font-family: var(--font-title);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  font-size: 0.9rem;
+  padding: 0.6rem 1.4rem;
+  box-shadow: 0 3px 0 var(--ink);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+}
+button:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+button:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 0 0 var(--ink);
+}
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+input {
+  background: rgba(5, 3, 2, 0.6);
+  border: 2px solid var(--ink);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 0.5rem 0.7rem;
+  font-size: 1rem;
+  font-family: var(--font-data);
+}
+input:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px rgba(201, 160, 78, 0.25);
+}
+
+.error {
+  color: #e08a8a;
+}
+
+/* Home — nu, sans cadre ; le titre reprend le look "plaque" de la boîte de jeu */
+.home-screen {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  padding-top: 3rem;
+}
+.home-screen h1 {
+  font-family: var(--font-title);
+  font-weight: 700;
+  font-size: clamp(1.9rem, 9vw, 2.6rem);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  background: var(--gold);
+  color: var(--ink);
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+  padding: 0.5rem 1.3rem;
+  box-shadow: 0 5px 0 var(--ink);
+}
+.subtitle {
+  color: var(--text-dim);
+  max-width: 24rem;
+  font-family: var(--font-data);
+}
+.mode-toggle {
+  display: flex;
+  gap: 0.5rem;
+}
+.mode-toggle button {
+  background: #1c1712;
+  color: var(--text-dim);
+}
+.mode-toggle .active {
+  background: var(--gold);
+  color: var(--ink);
+}
+.home-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 20rem;
+}
+.home-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  text-align: left;
+  font-family: var(--font-data);
+}
+
+/* Lobby */
+.room-code {
+  letter-spacing: 0.2rem;
+}
+.player-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.player-list li {
+  background: rgba(255, 255, 255, 0.04);
+  border-left: 3px solid var(--gold-low);
+  padding: 0.5rem 0.75rem;
+  border-radius: 10px;
+  font-family: var(--font-data);
+}
+.player-disconnected {
+  opacity: 0.5;
+}
+.leave-button {
+  background: var(--accent-red);
+  color: var(--text);
+}
+
+/* Réglages de partie (contenu de la modale) */
+.settings-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+.settings-checkbox input {
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--gold);
+}
+.settings-select {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.settings-select select {
+  background: rgba(5, 3, 2, 0.6);
+  border: 2px solid var(--ink);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 0.35rem 0.5rem;
+  font-family: var(--font-data);
+}
+.settings-summary {
+  font-family: var(--font-data);
+  color: var(--text-dim);
+  font-size: 0.85rem;
+}
+
+/* Roue crantée (hôte) : ouvre la modale de réglages, ancrée en haut à droite du salon */
+.settings-gear {
+  position: absolute;
+  top: 0.9rem;
+  right: 0.9rem;
+  width: 2.4rem;
+  height: 2.4rem;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 1.15rem;
+  background: #1c1712;
+  box-shadow: 0 2px 0 var(--ink);
+}
+.settings-gear:hover:not(:disabled) {
+  background: rgba(201, 160, 78, 0.25);
+}
+
+/* Modale de réglages */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 2000;
+}
+.modal-panel {
+  width: 100%;
+  max-width: 22rem;
+  background: rgba(10, 7, 5, 0.98);
+  border: 2px solid var(--ink);
+  border-radius: 18px;
+  padding: 1.25rem 1.25rem 1.5rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.modal-header h2 {
+  margin: 0;
+}
+.modal-close {
+  width: 2.2rem;
+  height: 2.2rem;
+  padding: 0;
+  border-radius: 50%;
+  background: #1c1712;
+  box-shadow: none;
+  font-size: 0.95rem;
+}
+.modal-close:hover:not(:disabled) {
+  background: rgba(201, 160, 78, 0.25);
+}
+
+/* Historique discret des dernières manches */
+.round-tracker-history {
+  display: flex;
+  gap: 0.3rem;
+  font-size: 1.1rem;
+}
+
+/* Cartes — agrandies pour profiter de la largeur récupérée en format téléphone */
+.section-label {
+  font-family: var(--font-data);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.72rem;
+  color: var(--gold-low);
+  margin-bottom: 0.3rem;
+}
+.card-row {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+/* Taille responsive : suit la largeur d'écran (clamp) et garde le ratio d'une vraie carte
+   (aspect-ratio) plutôt que deux dimensions fixes indépendantes. */
+.card {
+  width: clamp(4rem, 20vw, 5.8rem);
+  aspect-ratio: 0.7;
+  height: auto;
+  border-radius: 8px;
+  background: linear-gradient(160deg, #fbf3e0, #ece0c0);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: clamp(1.1rem, 5vw, 1.5rem);
+  border: 2px solid var(--ink);
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.4);
+}
+.card-rank {
+  font-family: var(--font-data);
+}
+.card-red {
+  color: #a5202f;
+}
+.card-black {
+  color: #1a1410;
+}
+.card-hidden {
+  background: linear-gradient(160deg, #1c1310, #050302);
+  border: 2px solid var(--gold-low);
+}
+.community-empty {
+  color: var(--text-dim);
+  font-style: italic;
+  font-family: var(--font-data);
+}
+.hole-cards .card {
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.4), 0 0 14px 1px rgba(201, 160, 78, 0.3);
+}
+
+/* Animation de distribution : chaque carte arrive comme "lancée" par le donneur, une
+   seule fois à son apparition (React ne remonte que les cartes réellement nouvelles —
+   voir HoleCards/CommunityCards — donc les cartes déjà affichées ne rejouent jamais ça). */
+@keyframes dealIn {
+  from {
+    opacity: 0;
+    transform: translateY(-22px) scale(0.8) rotate(-8deg);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotate(0deg);
+  }
+}
+.hole-cards .card,
+.community-cards .card {
+  animation: dealIn 0.4s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+.hole-cards .card:nth-child(2) {
+  animation-delay: 90ms;
+}
+.community-cards .card:nth-child(2) {
+  animation-delay: 90ms;
+}
+.community-cards .card:nth-child(3) {
+  animation-delay: 180ms;
+}
+.community-cards .card:nth-child(4) {
+  animation-delay: 270ms;
+}
+.community-cards .card:nth-child(5) {
+  animation-delay: 360ms;
+}
+
+/* Plateau de jetons — vrais jetons de poker : cercle central + bord "denté"
+   (repeating-conic-gradient), la couleur DU JETON change selon le statut :
+   sombre = libre, JAUNE = placé, ROUGE = verrouillé. Le nom reste l'info principale,
+   le numéro de position devient un petit badge discret au-dessus du jeton. */
+.chip-board {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(5.6rem, 1fr));
+  gap: 0.9rem;
+  justify-items: center;
+}
+.chip-slot {
+  --chip-fill: var(--chip-empty);
+  width: 5.8rem;
+  height: 5.8rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.3rem;
+  position: relative;
+  border: 3px solid var(--ink);
+  box-shadow: 0 3px 0 var(--ink);
+  background: radial-gradient(circle at center, var(--chip-fill) 0 60%, transparent 61%),
+    repeating-conic-gradient(#f7ecd2 0deg 15deg, var(--chip-fill) 15deg 30deg);
+  color: var(--gold-soft);
+}
+.chip-slot-occupied {
+  --chip-fill: var(--chip-yellow);
+}
+.chip-slot-locked {
+  --chip-fill: var(--chip-red);
+}
+.chip-slot-mine {
+  border-color: var(--gold-hi);
+}
+.chip-slot-number {
+  font-family: var(--font-data);
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+.chip-slot-occupied .chip-slot-number {
+  position: absolute;
+  top: -0.6rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.68rem;
+  min-width: 1.3rem;
+  height: 1.3rem;
+  line-height: 1.2rem;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  background: var(--ink);
+  border: 1px solid var(--gold-low);
+  color: var(--gold-soft);
+}
+.chip-slot-occupied .chip-slot-name {
+  color: var(--ink);
+}
+.chip-slot-name {
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+  text-align: center;
+  line-height: 1.15;
+}
+
+.lock-button {
+  align-self: center;
+}
+.lock-button.locked {
+  background: #1c1712;
+  color: var(--gold-soft);
+}
+
+.countdown-banner {
+  background: var(--accent-red);
+  color: var(--text);
+  font-family: var(--font-data);
+  letter-spacing: 0.03em;
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  border: 2px solid var(--ink);
+  width: fit-content;
+}
+
+/* Emotes */
+.emote-bar {
+  display: flex;
+  gap: 0.4rem;
+}
+.emote-button {
+  font-size: 1.4rem;
+  width: 2.6rem;
+  height: 2.6rem;
+  padding: 0;
+  border-radius: 50%;
+  background: #1c1712;
+  box-shadow: 0 2px 0 var(--ink);
+}
+.emote-button:hover:not(:disabled) {
+  background: rgba(201, 160, 78, 0.25);
+}
+.emote-toasts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  pointer-events: none;
+  z-index: 1000;
+}
+.emote-toast {
+  background: rgba(10, 6, 4, 0.9);
+  border: 1px solid var(--gold);
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  font-family: var(--font-data);
+  animation: fadein 0.2s ease;
+}
+@keyframes fadein {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Chat — vitre sombre simple */
+.chat-panel {
+  border-radius: 16px;
+  border: 1px solid rgba(201, 160, 78, 0.3);
+  background: rgba(8, 5, 4, 0.6);
+  backdrop-filter: blur(6px);
+  display: flex;
+  flex-direction: column;
+  max-height: 12rem;
+  overflow: hidden;
+}
+.chat-log {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+  font-family: var(--font-data);
+}
+.chat-empty {
+  color: var(--text-dim);
+  font-style: italic;
+}
+.chat-author {
+  font-family: var(--font-title);
+  color: var(--gold-soft);
+  font-weight: 600;
+}
+.chat-form {
+  display: flex;
+  gap: 0.4rem;
+  padding: 0.5rem;
+  border-top: 1px solid rgba(201, 160, 78, 0.3);
+}
+.chat-form input {
+  flex: 1;
+}
+
+/* Révélation */
+.reveal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.reveal-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  padding: 0.6rem 0.9rem;
+  border-left: 3px solid var(--gold-low);
+  flex-wrap: wrap;
+}
+.reveal-pass {
+  border-left-color: var(--success);
+}
+.reveal-fail {
+  border-left-color: var(--danger);
+}
+.reveal-slot {
+  font-family: var(--font-data);
+  font-weight: bold;
+  color: var(--gold-soft);
+  min-width: 2rem;
+}
+.reveal-name {
+  font-family: var(--font-title);
+  min-width: 6rem;
+  font-weight: 600;
+}
+.reveal-cards {
+  gap: 0.3rem;
+}
+.reveal-cards .card {
+  width: 2.6rem;
+  height: 3.7rem;
+  font-size: 1rem;
+}
+.reveal-label {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  font-family: var(--font-data);
+}
+.reveal-waiting {
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+/* Résultat de manche */
+.round-result-screen {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding-top: 2rem;
+}
+.round-result-actions {
+  display: flex;
+  gap: 0.6rem;
+}
