@@ -53,13 +53,19 @@ body {
   body {
     height: 100%;
     overflow: hidden;
-    overscroll-behavior-y: none;
+    overscroll-behavior: none;
   }
   #root {
     height: 100%;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    overscroll-behavior-y: contain;
+    overscroll-behavior: none;
+  }
+  /* Même unité que #root (%) plutôt que 100dvh : évite un tout petit écart de calcul
+     entre les deux qui rendait #root "scrollable" de quelques pixels, perçu comme
+     un léger rebond résiduel même sans vrai contenu à faire défiler. */
+  .app-shell {
+    min-height: 100%;
   }
 }
 
